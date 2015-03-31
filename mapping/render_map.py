@@ -24,9 +24,18 @@ def display_shape(var_array, display_text):
                                                      shape=array_shape
                                                      )
     print(message)
+    
+    
+def determine_avg_axis(array_shape, dim_0_max, dim_1_max):
+    try:
+        avg_axis = array_shape.index(dim_0_max)
+    except ValueError:
+        avg_axis = array_shape.index(dim_1_max)
+    return avg_axis
 
 
 if __name__ == '__main__':
+    # numpy - for 2D array axis 0 are columns, axis 1 are rows
 
     coawst = nc4.Dataset(SGRID_URL)
     sgc = SGrid().from_nc_dataset(coawst)
@@ -40,14 +49,24 @@ if __name__ == '__main__':
     display_shape(angle, 'angle')
     rho_mask = coawst.variables['mask_rho'][:]
     display_shape(rho_mask, 'rho mask')
-    print(rho_mask)
+    # print(rho_mask)
     face_padding = sgc.face_padding
-    print(face_padding)
+    # print(face_padding)
     u_trim = u_raw[1:-1, :]
     v_trim = v_raw[:, 1:-1]
     display_shape(u_trim, 'u trim')
     display_shape(v_trim, 'v trim')
-    angle_trim = angle[1:-1, 1:-1]
+    angle_trim = angle[1:-1, 1:-1]  # rows and columns
     rho_mask_trim = rho_mask[1:-1, 1:-1]
     display_shape(angle_trim, 'angle trim')
     display_shape(rho_mask_trim, 'rho mask trim')
+    u_trim_shape = u_trim.shape
+    v_trim_shape = v_trim.shape
+    uv_dim_0 = (u_trim_shape[0], v_trim_shape[0])
+    uv_dim_1 = (u_trim_shape[1], v_trim_shape[1])
+    dim_0_max = max(uv_dim_0)
+    dim_1_max = max(uv_dim_1)
+    u_avg_dim = determine_avg_axis(u_trim_shape, dim_0_max, dim_1_max)
+    v_avg_dim = determine_avg_axis(v_trim_shape, dim_0_max, dim_1_max)
+    print('u avg dim: {0}'.format(u_avg_dim))
+    print('v avg dim: {0}'.format(v_avg_dim))

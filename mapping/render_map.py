@@ -80,7 +80,10 @@ if __name__ == '__main__':
     display_shape(rho_mask, 'rho mask')
     # print(rho_mask)
     face_padding = sgc.face_padding
-    # print(face_padding)
+    print(face_padding)
+    print(sgc.edge_1_padding)
+    print(sgc.edge_2_padding)
+    print(sgc.vertical_padding)
     u_trim = u_raw[1:-1, :]
     v_trim = v_raw[:, 1:-1]
     display_shape(u_trim, 'u trim')

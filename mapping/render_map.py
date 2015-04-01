@@ -70,28 +70,31 @@ if __name__ == '__main__':
     sgc = SGrid().from_nc_dataset(coawst)
     grid_center_lon = sgc.grid_cell_center_lon
     grid_center_lat = sgc.grid_cell_center_lat
-    u_raw = coawst.variables['u'][TIME_SLICE, VERTICAL_SLICE, :, :]
-    display_shape(u_raw, 'u raw')
-    v_raw = coawst.variables['v'][TIME_SLICE, VERTICAL_SLICE, :, :]
-    display_shape(v_raw, 'v raw')
+    u_slice = np.s_[TIME_SLICE, VERTICAL_SLICE] + sgc.u_slice[2:]
+    u_trim = coawst.variables['u'][u_slice]
+    # display_shape(u_raw, 'u raw')
+    v_slice = np.s_[TIME_SLICE, VERTICAL_SLICE] + sgc.v_slice[2:]
+    v_trim = coawst.variables['v'][v_slice]
+    # display_shape(v_raw, 'v raw')
     angle = coawst.variables['angle'][:]
     display_shape(angle, 'angle')
-    rho_mask = coawst.variables['mask_rho'][:]
-    display_shape(rho_mask, 'rho mask')
+    # rho_mask = coawst.variables['mask_rho'][:]
+    # display_shape(rho_mask, 'rho mask')
     # print(rho_mask)
     face_padding = sgc.face_padding
     print(face_padding)
     print(sgc.edge_1_padding)
     print(sgc.edge_2_padding)
     print(sgc.vertical_padding)
-    u_trim = u_raw[1:-1, :]
-    v_trim = v_raw[:, 1:-1]
+    # u_trim = u_raw[1:-1, :]
+    # v_trim = v_raw[:, 1:-1]
     display_shape(u_trim, 'u trim')
     display_shape(v_trim, 'v trim')
-    angle_trim = angle[1:-1, 1:-1]  # rows and columns
-    rho_mask_trim = rho_mask[1:-1, 1:-1]
+    # angle_trim = angle[1:-1, 1:-1]  # rows and columns
+    angle_trim = angle[sgc.angle_slice]
+    # rho_mask_trim = rho_mask[1:-1, 1:-1]
     display_shape(angle_trim, 'angle trim')
-    display_shape(rho_mask_trim, 'rho mask trim')
+    # display_shape(rho_mask_trim, 'rho mask trim')
     u_trim_shape = u_trim.shape
     v_trim_shape = v_trim.shape
     uv_dim_0 = (u_trim_shape[0], v_trim_shape[0])

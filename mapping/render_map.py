@@ -8,9 +8,9 @@ import netCDF4 as nc4
 import numpy as np
 import matplotlib.pyplot as plt
 from pysgrid.sgrid import SGrid
+from pysgrid.processing_2d import vector_sum, rotate_vectors, avg_to_cell_center
 
 
-ADRIATIC_CGRID = 'http://geoport.whoi.edu/thredds/dodsC/examples/bora_feb.nc'
 SGRID_URL = 'http://geoport.whoi.edu/thredds/dodsC/coawst_4/use/fmrc/coawst_4_use_best.ncd'
 TIME_SLICE = -1  # get the last time slice
 VERTICAL_SLICE = -1  # get the last vertical slice
@@ -37,32 +37,6 @@ def determine_avg_axis(array_shape, dim_0_max, dim_1_max):
     return avg_axis
 
 
-def avg_to_cell_center(data_array, avg_dim):
-    if avg_dim == 0:
-        da = np.transpose(data_array)
-    else:
-        da = data_array
-    da_trim_low = da[:, 1:]
-    da_trim_high = da[:, :-1]
-    da_avg_raw = 0.5 * (da_trim_low + da_trim_high)
-    if avg_dim == 0:
-        da_avg = np.transpose(da_avg_raw)
-    else:
-        da_avg = da_avg_raw
-    return da_avg
-
-
-def rotate_vectors(x_arr, y_arr, angle_arr):
-    x_rot = x_arr*np.cos(angle_arr) - y_arr*np.sin(angle_arr)
-    y_rot = x_arr*np.sin(angle_arr) + y_arr*np.cos(angle_arr)
-    return x_rot, y_rot
-
-
-def vector_sum(x_arr, y_arr):
-    vector_sum = np.sqrt(x_arr**2 + y_arr**2)
-    return vector_sum
-    
-
 if __name__ == '__main__':
     # numpy - for 2D array axis 0 are columns, axis 1 are rows
 
@@ -72,29 +46,22 @@ if __name__ == '__main__':
     grid_center_lat = sgc.grid_cell_center_lat
     u_slice = np.s_[TIME_SLICE, VERTICAL_SLICE] + sgc.u_slice[2:]
     u_trim = coawst.variables['u'][u_slice]
-    # display_shape(u_raw, 'u raw')
     v_slice = np.s_[TIME_SLICE, VERTICAL_SLICE] + sgc.v_slice[2:]
     v_trim = coawst.variables['v'][v_slice]
-    # display_shape(v_raw, 'v raw')
-    angle = coawst.variables['angle'][:]
-    display_shape(angle, 'angle')
-    # rho_mask = coawst.variables['mask_rho'][:]
-    # display_shape(rho_mask, 'rho mask')
-    # print(rho_mask)
+    # angle = coawst.variables['angle'][:]
+    # display_shape(angle, 'angle')
     face_padding = sgc.face_padding
     print(face_padding)
     print(sgc.edge_1_padding)
     print(sgc.edge_2_padding)
     print(sgc.vertical_padding)
-    # u_trim = u_raw[1:-1, :]
-    # v_trim = v_raw[:, 1:-1]
     display_shape(u_trim, 'u trim')
     display_shape(v_trim, 'v trim')
     # angle_trim = angle[1:-1, 1:-1]  # rows and columns
-    angle_trim = angle[sgc.angle_slice]
-    # rho_mask_trim = rho_mask[1:-1, 1:-1]
+    angle_trim = coawst.variables['angle'][sgc.angle_slice]
     display_shape(angle_trim, 'angle trim')
     # display_shape(rho_mask_trim, 'rho mask trim')
+    # start figuring out what direction the vectors go in so they can be averaged to center
     u_trim_shape = u_trim.shape
     v_trim_shape = v_trim.shape
     uv_dim_0 = (u_trim_shape[0], v_trim_shape[0])
@@ -103,17 +70,17 @@ if __name__ == '__main__':
     dim_1_max = max(uv_dim_1)
     u_avg_dim = determine_avg_axis(u_trim_shape, dim_0_max, dim_1_max)
     v_avg_dim = determine_avg_axis(v_trim_shape, dim_0_max, dim_1_max)
+    # end figuring out what direction the vectors go in so they can be averaged to center
     print('u avg dim: {0}'.format(u_avg_dim))
     print('v avg dim: {0}'.format(v_avg_dim))
-    u_avg = avg_to_cell_center(u_trim, u_avg_dim)  # y
+    u_avg = avg_to_cell_center(u_trim, u_avg_dim)  # y (I think...)
     v_avg = avg_to_cell_center(v_trim, v_avg_dim)  # x
     display_shape(u_avg, 'u avg')
     display_shape(v_avg, 'v avg')
     v_rot, u_rot = rotate_vectors(v_avg, u_avg, angle_trim)
-    lon_rho = coawst.variables['lon_rho'][1:-1, 1:-1]
-    lat_rho = coawst.variables['lat_rho'][1:-1, 1:-1]
+    lon_rho = grid_center_lon[sgc.lon_rho_slice]
+    lat_rho = grid_center_lat[sgc.lat_rho_slice]
     uv_sum = vector_sum(v_rot, u_rot)
-    print(uv_sum)
     display_shape(uv_sum, 'uv vector sum')
     fig = plt.figure(figsize=(12, 12))
     plt.subplot(111, aspect=(1.0/np.cos(np.mean(lat_rho)*np.pi/180.0)))

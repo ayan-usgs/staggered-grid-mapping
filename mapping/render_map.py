@@ -44,23 +44,13 @@ if __name__ == '__main__':
     sgc = SGrid().from_nc_dataset(coawst)
     grid_center_lon = sgc.grid_cell_center_lon
     grid_center_lat = sgc.grid_cell_center_lat
-    u_slice = np.s_[TIME_SLICE, VERTICAL_SLICE] + sgc.u_slice[2:]
+    u_slice = np.s_[TIME_SLICE, VERTICAL_SLICE] + sgc.u_slice[2:]  # include the time and vertical slice indices
     u_trim = coawst.variables['u'][u_slice]
     v_slice = np.s_[TIME_SLICE, VERTICAL_SLICE] + sgc.v_slice[2:]
     v_trim = coawst.variables['v'][v_slice]
-    # angle = coawst.variables['angle'][:]
-    # display_shape(angle, 'angle')
     face_padding = sgc.face_padding
-    print(face_padding)
-    print(sgc.edge_1_padding)
-    print(sgc.edge_2_padding)
-    print(sgc.vertical_padding)
-    display_shape(u_trim, 'u trim')
-    display_shape(v_trim, 'v trim')
-    # angle_trim = angle[1:-1, 1:-1]  # rows and columns
+    # angle_trim = coawst.variables['angle'][1:-1, 1:-1]  # rows and columns
     angle_trim = coawst.variables['angle'][sgc.angle_slice]
-    display_shape(angle_trim, 'angle trim')
-    # display_shape(rho_mask_trim, 'rho mask trim')
     # start figuring out what direction the vectors go in so they can be averaged to center
     u_trim_shape = u_trim.shape
     v_trim_shape = v_trim.shape
@@ -71,17 +61,12 @@ if __name__ == '__main__':
     u_avg_dim = determine_avg_axis(u_trim_shape, dim_0_max, dim_1_max)
     v_avg_dim = determine_avg_axis(v_trim_shape, dim_0_max, dim_1_max)
     # end figuring out what direction the vectors go in so they can be averaged to center
-    print('u avg dim: {0}'.format(u_avg_dim))
-    print('v avg dim: {0}'.format(v_avg_dim))
-    u_avg = avg_to_cell_center(u_trim, u_avg_dim)  # y (I think...)
-    v_avg = avg_to_cell_center(v_trim, v_avg_dim)  # x
-    display_shape(u_avg, 'u avg')
-    display_shape(v_avg, 'v avg')
+    u_avg = avg_to_cell_center(u_trim, u_avg_dim)  # y-direction (I think...)
+    v_avg = avg_to_cell_center(v_trim, v_avg_dim)  # x-direction
     v_rot, u_rot = rotate_vectors(v_avg, u_avg, angle_trim)
     lon_rho = grid_center_lon[sgc.lon_rho_slice]
     lat_rho = grid_center_lat[sgc.lat_rho_slice]
     uv_sum = vector_sum(v_rot, u_rot)
-    display_shape(uv_sum, 'uv vector sum')
     fig = plt.figure(figsize=(12, 12))
     plt.subplot(111, aspect=(1.0/np.cos(np.mean(lat_rho)*np.pi/180.0)))
     plt.pcolormesh(lon_rho, lat_rho, uv_sum)

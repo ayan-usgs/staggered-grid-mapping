@@ -42,8 +42,9 @@ if __name__ == '__main__':
 
     coawst = nc4.Dataset(SGRID_URL)
     sgc = SGrid().from_nc_dataset(coawst)
-    grid_center_lon = sgc.grid_cell_center_lon
-    grid_center_lat = sgc.grid_cell_center_lat
+    grid_cell_centers = sgc.centers
+    grid_center_lon = grid_cell_centers[:, :, 0]
+    grid_center_lat = grid_cell_centers[:, :, 1]
     u_slice = np.s_[TIME_SLICE, VERTICAL_SLICE] + sgc.u_slice[2:]  # include the time and vertical slice indices
     u_trim = coawst.variables['u'][u_slice]
     v_slice = np.s_[TIME_SLICE, VERTICAL_SLICE] + sgc.v_slice[2:]
@@ -61,12 +62,12 @@ if __name__ == '__main__':
     u_avg_dim = determine_avg_axis(u_trim_shape, dim_0_max, dim_1_max)
     v_avg_dim = determine_avg_axis(v_trim_shape, dim_0_max, dim_1_max)
     # end figuring out what direction the vectors go in so they can be averaged to center
-    u_avg = avg_to_cell_center(u_trim, u_avg_dim)  # y-direction (I think...)
-    v_avg = avg_to_cell_center(v_trim, v_avg_dim)  # x-direction
-    v_rot, u_rot = rotate_vectors(v_avg, u_avg, angle_trim)
+    u_avg = avg_to_cell_center(u_trim, u_avg_dim)  # velocity in x-direction (I think...)
+    v_avg = avg_to_cell_center(v_trim, v_avg_dim)  # y-direction
+    u_rot, v_rot = rotate_vectors(u_avg, v_avg, angle_trim)
     lon_rho = grid_center_lon[sgc.lon_rho_slice]
     lat_rho = grid_center_lat[sgc.lat_rho_slice]
-    uv_sum = vector_sum(v_rot, u_rot)
+    uv_sum = vector_sum(u_rot, v_rot)
     fig = plt.figure(figsize=(12, 12))
     plt.subplot(111, aspect=(1.0/np.cos(np.mean(lat_rho)*np.pi/180.0)))
     plt.pcolormesh(lon_rho, lat_rho, uv_sum)

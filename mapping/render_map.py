@@ -9,13 +9,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pysgrid.sgrid import SGrid
 from pysgrid.processing_2d import vector_sum, rotate_vectors, avg_to_cell_center
+from matplotlib.cm import get_cmap
+from matplotlib.colors import Normalize
 
 
 SGRID_URL = 'http://geoport.whoi.edu/thredds/dodsC/coawst_4/use/fmrc/coawst_4_use_best.ncd'
 TIME_SLICE = -1  # get the last time slice
-VERTICAL_SLICE = -1  # get the last vertical slice
-SUB = 3
-SCALE = 0.03
+VERTICAL_SLICE = 0  # get the last vertical slice
+SUB = 1
+SCALE = 0.06
 
 os.environ['TCL_LIBRARY'] = 'C:/Python279/tcl/tcl8.5'
 os.environ['TK_LIBRARY'] = 'C:/Python279/tcl/tk8.5'
@@ -68,11 +70,26 @@ if __name__ == '__main__':
     lon_rho = grid_center_lon[sgc.lon_rho_slice]
     lat_rho = grid_center_lat[sgc.lat_rho_slice]
     uv_sum = vector_sum(u_rot, v_rot)
+    cmap = get_cmap('jet')
+    norm = Normalize()
     fig = plt.figure(figsize=(12, 12))
     plt.subplot(111, aspect=(1.0/np.cos(np.mean(lat_rho)*np.pi/180.0)))
-    plt.pcolormesh(lon_rho, lat_rho, uv_sum)
-    q = plt.quiver(lon_rho[::SUB, ::SUB], lat_rho[::SUB, ::SUB], v_rot[::SUB, ::SUB], u_rot[::SUB, ::SUB], 
-                   scale=1.0/SCALE, pivot='middle', zorder=1e35, width=0.003)
+    # plt.pcolormesh(lon_rho, lat_rho, uv_sum)
+    q = plt.quiver(lon_rho[::SUB, ::SUB], 
+                   lat_rho[::SUB, ::SUB], 
+                   u_rot[::SUB, ::SUB], 
+                   v_rot[::SUB, ::SUB], 
+                   uv_sum[::SUB, ::SUB], 
+                   scale=1.0/SCALE,
+                   # scale=None, 
+                   # pivot='middle',
+                   pivot='mid', 
+                   # zorder=1e35, 
+                   # width=0.003, 
+                   cmap=cmap,
+                   norm=norm,
+                   minlength=0.5
+                   )
     plt.quiverkey(q, 0.85, 0.07, 1.0, label=r'1 m s$^{-1}$', coordinates='figure')
     plt.show()
     

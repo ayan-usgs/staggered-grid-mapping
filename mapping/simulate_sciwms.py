@@ -15,11 +15,13 @@ from mpl_toolkits.basemap import Basemap
 from pysgrid import SGrid
 from pysgrid.processing_2d import vector_sum, rotate_vectors, avg_to_cell_center
 from render_map import SGRID_URL
-from sciwmsfrag.cgrid import subset
+from sciwmsfrag.cgrid import subset, plot
 
 
 CURRENT_DIR = os.path.dirname(__name__)
 CACHE_FILE = os.path.join(CURRENT_DIR, 'coawst_cache.nc')
+os.environ['TCL_LIBRARY'] = 'C:/Python279/tcl/tcl8.5'
+os.environ['TK_LIBRARY'] = 'C:/Python279/tcl/tk8.5'
 
 
 if __name__ == '__main__':
@@ -70,21 +72,24 @@ if __name__ == '__main__':
     norm = Normalize()
     height = 800
     width = 1200
+    # plot(lonc, latc, u_rot, v_rot, ['vectors'], m.ax, fig, )
+
     fig.set_figheight(height/80.0/m.aspect)
     fig.set_figwidth(width/80.0)
-    m.ax.quiver(lonc[::stride, ::stride],
-                latc[::stride, ::stride],
-                u_rot.squeeze()[::stride, ::stride],
-                v_rot.squeeze()[::stride, ::stride],
-                uv_mag.squeeze()[::stride, ::stride],
-                pivot='mid',
-                cmap=cmap,
-                norm=norm,
-                minlength=0.5,
-                scale=None,
-                scale_units='inches',
-                angles='uv'
-                )
+    q = plt.quiver(lonc[::stride, ::stride],
+                   latc[::stride, ::stride],
+                   u_rot[::stride, ::stride],
+                   v_rot[::stride, ::stride],
+                   uv_mag[::stride, ::stride],
+                   pivot='mid',
+                   cmap=cmap,
+                   norm=norm,
+                   minlength=5.0,
+                   scale=None,
+                   scale_units='inches',
+                   angles='uv'
+                   )
+    """
     lonmax, latmax = m(lonmax, latmax)
     lonmin, latmin = m(lonmin, latmin)
     m.ax.set_xlim(lonmin, lonmax)
@@ -94,5 +99,7 @@ if __name__ == '__main__':
     m.ax.set_position([0, 0, 1, 1])
     canvas = FigureCanvasAgg(fig)
     canvas.print_png(r'C:\Users\ayan\Desktop\tmp\test.png')
-    
+    """
+    plt.quiverkey(q, 0.85, 0.07, 1.0, label=r'1 m s$^{-1}$', coordinates='figure')
+    plt.show()
     

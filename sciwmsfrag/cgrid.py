@@ -4,6 +4,7 @@ Created on Apr 9, 2015
 @author: ayan
 '''
 import numpy as np
+from matplotlib.cm import get_cmap
 
 
 def subset(latmin, lonmin, latmax, lonmax, lat, lon):
@@ -27,3 +28,40 @@ def subset(latmin, lonmin, latmax, lonmax, lat, lon):
         lon = np.asarray([[],[]])
     #print str(timeobj.time()-t1) + " subset coords"
     return index, lat, lon
+
+
+def plot(lon, lat, var1, var2, actions, ax, fig, **kwargs):
+    #t1 = timeobj.time()
+    aspect = kwargs.get('aspect', None)
+    height = kwargs.get('height')
+    width = kwargs.get('width')
+    norm = kwargs.get('norm')
+    blah = kwargs.get('cmap', 'jet')
+    print('blah: {0}'.format(blah))
+    cmap = get_cmap('jet')
+    if "vectors" in actions:
+        fig.set_figheight(height/80.0/aspect)
+        fig.set_figwidth(width/80.0)
+        vectors(lon, lat, var1, var2, mag, ax, norm, cmap, magnitude)
+            
+            
+def vectors(lon, lat, var1, var2, mag, ax, norm, cmap, magnitude):
+    if magnitude == "True":
+        arrowsize = None
+    elif magnitude == "False":
+        arrowsize = 2.
+    elif magnitude == "None":
+        arrowsize = None
+    else:
+        arrowsize = float(magnitude)
+    stride = 1
+    ax.quiver(lon[::stride,::stride], lat[::stride,::stride], var1.squeeze()[::stride,::stride], var2.squeeze()[::stride,::stride], mag.squeeze()[::stride,::stride],
+                pivot='mid',
+                #units='uv', #xy
+                cmap=cmap,
+                norm=norm,
+                minlength=.5,
+                scale=arrowsize,
+                scale_units='inches',
+                angles='uv',
+                )

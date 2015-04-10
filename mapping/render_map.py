@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # numpy - for 2D array axis 0 are columns, axis 1 are rows
 
     coawst = nc4.Dataset(SGRID_URL)
-    sgc = SGrid().from_nc_dataset(coawst)
+    sgc = SGrid.from_nc_dataset(coawst)
     grid_cell_centers = sgc.centers
     grid_center_lon = grid_cell_centers[:, :, 0]
     grid_center_lat = grid_cell_centers[:, :, 1]
